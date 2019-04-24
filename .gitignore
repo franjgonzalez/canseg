@@ -1,0 +1,7 @@
+# Ignore the following files
+**/__pycache__
+**/.ipynb_checkpoints
+**/.DS_Store
+**/*.ipynb
+**/.remote-sync.json
+**/ckpt
