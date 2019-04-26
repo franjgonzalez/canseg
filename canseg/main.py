@@ -30,19 +30,28 @@ def model_fn(features, labels, mode, params):
 
     # Create model and get output mask
     model = unet_model.Model(params, mode == tf.estimator.ModeKeys.TRAIN)
-    output_masks = model(inputs=features)
+    output_logits = model(inputs=features)
 
     ## Predict
+    output_prob = tf.nn.sigmoid(output_logits)
+    output_mask = tf.round(output_prob)
     # Process output_masks
     if mode == tf.estimator.ModeKeys.PREDICT:
-        predictions = {}
+        predictions = {"output_masks": output_mask}
+        return tf.estimator.EstimatorSpec(mode, predictions=predictions)
 
     # Compute loss
-    loss = None
+    loss = tf.losses.sigmoid_cross_sigmoid(labels, logits=output_logits)
     # Compute evaluation metrics
-    accuracy = None
-    metrics = {"accuracy": accuracy}
+    bs = tf.shape(labels)[0]
+    miou = tf.metrics.mean_iou(
+        labels=tf.reshape(labels, (bs, -1)),
+        predictions=tf.reshape(output_mask, (bs, -1)),
+        num_classes=2,
+    )
+    metrics = {"miou": miou}
     # Add metrics to summary
+    tf.summary.scalar("miou", miou[1])
 
     ## Evalaute
     if mode == tf.estimator.ModeKeys.EVAL:
@@ -158,6 +167,10 @@ def predict(estimator, params):
     )
 
     # Save predictions
+    output_masks, mask_probabilities = [], []
+    for pred_dict in predictions:
+        class_ids.append(pred_dict["class_ids"])
+        probabilities.append(pred_dict["probabilities"])
 
 
 def main(argv):

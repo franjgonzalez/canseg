@@ -9,6 +9,7 @@ import glob
 import pickle
 import numpy as np
 import pandas as pd
+import scipy.sparse as sp
 
 from sklearn.model_selection import train_test_split
 
@@ -18,6 +19,7 @@ DATA_PATH = os.path.join(os.getenv("HOME"), ".keras/datasets/TCGA-GBM/processed"
 
 
 def get_data():
+    """Get list of paths to data and do train-test split."""
 
     # Get input image and label paths
     img_paths = glob.glob(os.path.join(DATA_PATH, "input_images/*.jpg"))
@@ -33,6 +35,26 @@ def get_data():
     )
 
     return train_X, test_X, train_y, test_y
+
+
+def _parse_function_with_label(img_path, label_path):
+    # Read image
+    img_string = tf.read_file(img_path)
+    img = tf.image.decode_jpeg(img_string, channels=3)
+    # Read mask
+    mask = sp.load_npz(label_path).todense()
+    # Return dictionary of inputs and label
+    input_dict = {"images": img}
+    return input_dict, label
+
+
+def _parse_function_without_label(img_path):
+    # Read image
+    img_string = tf.read_file(img_path)
+    img = tf.image.decode_jpeg(img_string, channels=3)
+    # Return dictionary of inputs
+    input_dict = {"images": img}
+    return input_dict
 
 
 def train_input_fn(img_paths, label_paths, batch_size=1):

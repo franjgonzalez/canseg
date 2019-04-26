@@ -15,8 +15,5 @@ BASE_PARAMS = defaultdict(
     throttle_secs=600,
     # Data and output directories
     model_dir="ckpt/",
-    train_data_dir="",
-    eval_data_dir="",
-    infer_data_dir="",
     pred_dir="pred/",
 )
