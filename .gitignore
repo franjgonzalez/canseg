@@ -5,3 +5,4 @@
 **/*.ipynb
 **/.remote-sync.json
 **/ckpt
+**/pred

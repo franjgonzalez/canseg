@@ -170,10 +170,15 @@ def predict(estimator, params):
     )
 
     # Save predictions
-    output_masks, mask_probabilities = [], []
+    mask_probabilities = []
     for pred_dict in predictions:
-        output_masks.append(pred_dict["output_masks"])
         mask_probabilities.append(pred_dict["output_probabilities"])
+
+    if not os.path.exists(params["pred_dir"]):
+        os.makedirs(params["pred_dir"])
+
+    with open(os.path.join(params["pred_dir"], "pred.pkl"), "wb") as f:
+        pickle.dump((test_X, mask_probabilities), f)
 
 
 def main(argv):

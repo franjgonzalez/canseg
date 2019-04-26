@@ -45,6 +45,9 @@ def process_images(path, data_path):
     label_file = glob.glob(os.path.join(path, "*GlistrBoost.nii.gz"))[0]
     img = nib.load(label_file)
     label_img_data = img.get_fdata()
+    # Keep only slices that have masks with at least 75 pixels
+    mask_slices = np.where((label_img_data > 0).sum(axis=(0, 1)) > 75)[0]
+    label_img_data = label_img_data[:, :, mask_slices]
 
     # Transform masks to binary segmentation
     label_img_data[label_img_data > 0] = 1.0
@@ -59,6 +62,7 @@ def process_images(path, data_path):
     for i, f in enumerate([t1Gd_file, t2_file, flair_file]):
         img = nib.load(f)
         img_data = img.get_fdata()
+        img_data = img_data[:, :, mask_slices]
         # Rescale
         img_data *= 255.0 / img_data.max()
         # Store modality as channel
