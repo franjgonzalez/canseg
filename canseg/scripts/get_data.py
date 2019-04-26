@@ -11,7 +11,6 @@ from tqdm import tqdm
 
 import zipfile
 import numpy as np
-import scipy.sparse as sp
 
 import nibabel as nib
 
@@ -76,9 +75,9 @@ def process_images(path, data_path):
         cv2.imwrite(img_path, input_img_data[:, :, :, i])
         # Save mask
         mask_path = os.path.join(
-            data_path + "/processed/output_masks/", f"{file_id}.npz"
+            data_path + "/processed/output_masks/", f"{file_id}.jpg"
         )
-        sp.save_npz(mask_path, sp.csc_matrix(label_img_data[:, :, i]))
+        cv2.imwrite(mask_path, label_img_data[:, :, i])
         # Keep file_id
         file_ids.append(file_id)
 
@@ -101,5 +100,5 @@ if __name__ == "__main__":
     # Process images
     print("Processing and saving images")
     for img_path in tqdm(img_paths):
-        file_id = process_images(img_path, data_path)
+        _ = process_images(img_path, data_path)
     print("Done")

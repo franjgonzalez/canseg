@@ -33,25 +33,26 @@ def model_fn(features, labels, mode, params):
     output_logits = model(inputs=features)
 
     ## Predict
-    output_prob = tf.nn.sigmoid(output_logits)
-    output_mask = tf.round(output_prob)
+    output_probabilities = tf.nn.sigmoid(output_logits)
+    output_masks = tf.round(output_probabilities)
     # Process output_masks
     if mode == tf.estimator.ModeKeys.PREDICT:
-        predictions = {"output_masks": output_mask}
+        predictions = {
+            "output_masks": output_masks,
+            "output_probabilities": output_probabilities,
+        }
         return tf.estimator.EstimatorSpec(mode, predictions=predictions)
 
     # Compute loss
-    loss = tf.losses.sigmoid_cross_sigmoid(labels, logits=output_logits)
+    loss = tf.losses.sigmoid_cross_entropy(labels, logits=output_logits)
     # Compute evaluation metrics
-    bs = tf.shape(labels)[0]
-    miou = tf.metrics.mean_iou(
-        labels=tf.reshape(labels, (bs, -1)),
-        predictions=tf.reshape(output_mask, (bs, -1)),
-        num_classes=2,
+    accuracy = tf.metrics.accuracy(
+        labels=labels, predictions=output_masks, name="acc_op"
     )
-    metrics = {"miou": miou}
+    metrics = {"accuracy": accuracy}
+
     # Add metrics to summary
-    tf.summary.scalar("miou", miou[1])
+    tf.summary.scalar("accuracy", accuracy[1])
 
     ## Evalaute
     if mode == tf.estimator.ModeKeys.EVAL:
@@ -78,7 +79,7 @@ def train(estimator, params):
     """
 
     # Fetch the data
-    train_X, _, train_y, _ = data_utils.get_data()
+    train_X, _, train_y, _ = data_utils.get_data(params)
 
     # Train the model
     estimator.train(
@@ -98,13 +99,13 @@ def evaluate(estimator, params):
     """
 
     # Fetch the data
-    _, test_X, _, test_y = data_utils.get_data()
+    _, test_X, _, test_y = data_utils.get_data(params)
 
     # Run evaluation
     eval_result = estimator.evaluate(
         input_fn=lambda: data_utils.eval_input_fn(
-            img_paths=train_X,
-            label_paths=train_y,
+            img_paths=test_X,
+            label_paths=test_y,
             batch_size=params["batch_size"],
             shuffle=True,
         )
@@ -120,7 +121,8 @@ def train_and_eval(estimator, params):
     """
 
     # Fetch the data
-    train_X, test_X, train_y, test_y = data_utils.get_data()
+    print("Getting data")
+    train_X, test_X, train_y, test_y = data_utils.get_data(params)
 
     # Define train and eval spec
     train_spec = tf.estimator.TrainSpec(
@@ -131,8 +133,8 @@ def train_and_eval(estimator, params):
     )
     eval_spec = tf.estimator.EvalSpec(
         input_fn=lambda: data_utils.eval_input_fn(
-            img_paths=train_X,
-            label_paths=train_y,
+            img_paths=test_X,
+            label_paths=test_y,
             batch_size=params["batch_size"],
             shuffle=True,
         ),
@@ -142,6 +144,7 @@ def train_and_eval(estimator, params):
     )
 
     # Train and evaluate model
+    print("Launching train_and_evaluate")
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
 
@@ -154,13 +157,13 @@ def predict(estimator, params):
     """
 
     # Fetch the data
-    _, test_X, _, _ = data_utils.get_data()
+    _, test_X, _, _ = data_utils.get_data(params)
 
     # Make predictions
     predictions = estimator.predict(
         input_fn=lambda: data_utils.eval_input_fn(
-            img_paths=train_X,
-            label_paths=train_y,
+            img_paths=test_X,
+            label_paths=None,
             batch_size=params["batch_size"],
             shuffle=False,
         )
@@ -169,8 +172,8 @@ def predict(estimator, params):
     # Save predictions
     output_masks, mask_probabilities = [], []
     for pred_dict in predictions:
-        class_ids.append(pred_dict["class_ids"])
-        probabilities.append(pred_dict["probabilities"])
+        output_masks.append(pred_dict["output_masks"])
+        mask_probabilities.append(pred_dict["output_probabilities"])
 
 
 def main(argv):
@@ -187,21 +190,26 @@ def main(argv):
         os.makedirs(params["model_dir"])
 
     # Build model
+    print("Building model")
     estimator = tf.estimator.Estimator(
         model_fn=model_fn, params=params, model_dir=params["model_dir"]
     )
 
     # Train, eval, or predict
     if args.train:
+        print("Training model")
         train(estimator, params)
 
     if args.eval:
+        print("Running validation")
         evaluate(estimator, params)
 
     if args.train_and_eval:
+        print("Train and validate model")
         train_and_eval(estimator, params)
 
     if args.predict:
+        print("Run predictions")
         predict(estimator, params)
 
 

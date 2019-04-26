@@ -6,8 +6,8 @@ BASE_PARAMS = defaultdict(
     lambda: None,  # set default value to None
     random_seed=0,
     # Optimizer parameters
-    learning_rate=0.001,
-    batch_size=32,
+    learning_rate=0.0001,
+    batch_size=64,
     train_steps=25000,
     # Eval parameters
     eval_steps=100,
