@@ -8,7 +8,7 @@ BASE_PARAMS = defaultdict(
     # Optimizer parameters
     learning_rate=0.00001,
     batch_size=64,
-    train_steps=25000,
+    train_steps=5000,
     # Eval parameters
     eval_steps=100,
     start_delay_secs=30,
