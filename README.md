@@ -81,6 +81,9 @@ on the held-out set by running
 python -m canseg.main --predict
 ```
 
+After training for 20 epochs, I was able to get a **mean IoU of 0.737** for the scans with the
+top 25% largest segmentations, and an overall *mean IoU of 0.526*.
+
 **Example 1**
 
 <p align="center">
