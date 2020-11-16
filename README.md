@@ -1,6 +1,6 @@
 # CanSEG: Cancer Segmentation
 
-## A TensorFlow implementation of U-Net for cancer segmentation using the `tf.estimator` API.
+## A TensorFlow implementation of U-Net for tumor segmentation using the `tf.estimator` API.
 
 Author: Francisco Gonzalez
 
@@ -9,7 +9,7 @@ Author: Francisco Gonzalez
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 
 This is a simple variation of the U-Net model first proposed by Ronneberger, Fischer, and Brox in
-the paper [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597). In this implementation I join three different MRI modalities from pre-operative brain scans and perform binary segmentation (i.e, "cancer" vs. "no-cancer"). Figure 1 shows
+the paper [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597). In this implementation I join three different MRI modalities from pre-operative brain scans and perform binary segmentation (i.e, "tumor" vs. "no-tumor"). Figure 1 shows
 an example of an input "image" and the predicted output segmentation.
 
 <p align="center">
