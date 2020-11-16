@@ -1,4 +1,4 @@
-# CanSEG: Cancer Segmentation
+# Tumor Segmentation
 
 ## A TensorFlow implementation of U-Net for tumor segmentation using the `tf.estimator` API.
 
